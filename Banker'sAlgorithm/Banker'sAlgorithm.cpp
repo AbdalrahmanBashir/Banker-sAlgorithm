@@ -13,24 +13,21 @@ struct BankerData {
     std::vector<std::vector<int>> allocation; // A 2D vector representing the resources currently allocated to each 
     std::vector<std::vector<int>> max; // A 2D vector representing the maximum resources each process may need.
     std::vector<std::vector<int>> need; //  A 2D vector representing the remaining resources each process needs
+   
 };
 
 void initializeData(BankerData& data);
-bool isSafe(const BankerData& data, std::vector<int>& safeSeq);
-void printSafeSequence(const std::vector<int>& safeSeq);
+bool isSafe(const BankerData& data);
+
 
 int main()
 {
     BankerData data;
     initializeData(data);
-    std::vector<int> safeSeq;
-    if (isSafe(data, safeSeq)) {
-        std::cout << "System is in a safe state." << std::endl;
-        printSafeSequence(safeSeq);
-    }
-    else {
+    if (!isSafe(data)) {
         std::cout << "System is in an unsafe state." << std::endl;
     }
+
 }
 // Function to initialize the data for the system.
 void initializeData(BankerData& data) {
@@ -58,6 +55,7 @@ void initializeData(BankerData& data) {
         for (int j = 0; j < data.num_resources; j++) {
             std::cin >> data.allocation[i][j];
         }
+       
     }
 
     // Initialize max matrix
@@ -72,9 +70,10 @@ void initializeData(BankerData& data) {
 }
 
 // Function to check if the system is in a safe state using Banker's algorithm.
-bool isSafe(const BankerData& data, std::vector<int>& safeSeq) {
+bool isSafe(const BankerData& data) {
     std::vector<int> work(data.available);
     std::vector<bool> finish(data.num_processes, false);
+    std::vector<int> safe_sequence;
     int count = 0;
     // Iterate until all processes are marked as finished or no safe sequence is found.
     while (count < data.num_processes) {
@@ -95,31 +94,28 @@ bool isSafe(const BankerData& data, std::vector<int>& safeSeq) {
                         work[j] += data.allocation[i][j];
                     }
                     finish[i] = true;
-                    safeSeq.push_back(i);
                     is_sequence_found = true;
+                    safe_sequence.push_back(i);
                     count++;
+
                 }
             }
         }
         // If no safe sequence is found, return false
         if (!is_sequence_found) {
-            safeSeq.clear();
             return false;
         }
-    }
 
+
+    }
+    std::cout << "System is in a safe state. Safe sequence: ";
+    for (int i = 0; i < data.num_processes - 1; i++) {
+        std::cout << "P" << safe_sequence[i] << " -> ";
+    }
+    std::cout << "P" << safe_sequence[data.num_processes - 1] << std::endl;
     return true;
 }
 
-void printSafeSequence(const std::vector<int>& safeSeq) {
-    for (size_t i = 0; i < safeSeq.size(); i++) {
-        std::cout << "P" << safeSeq[i];
-        if (i != safeSeq.size() - 1) {
-            std::cout << " -> ";
-        }
-    }
-    std::cout << std::endl;
-}
 
 // Run program: Ctrl + F5 or Debug > Start Without Debugging menu
 // Debug program: F5 or Debug > Start Debugging menu
